@@ -33,7 +33,7 @@ static PyObject *py_pcm_to_g726_16(G726_cvObject *self, PyObject *args) {
     Py_ssize_t buf_len;
 
     // buf is managered by python, wen don't need to free
-    int succeed = PyArg_ParseTuple(args, "s#", &buf, &buf_len);
+    int succeed = PyArg_ParseTuple(args, "y#", &buf, &buf_len);
 
     if(succeed){
         /* cast Py_ssize_t signed integer to unsigned */
@@ -58,7 +58,7 @@ static PyObject *py_pcm_to_g726_16(G726_cvObject *self, PyObject *args) {
             (g726_16_encoder(buf_short[3], AUDIO_ENCODING_LINEAR, &self->state_ptr) << 0);
         }
 
-        PyObject *myResult = Py_BuildValue("s#", buf2, result_len);
+        PyObject *myResult = Py_BuildValue("y#", buf2, result_len);
         free(buf2);
         return myResult;
     }
