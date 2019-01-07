@@ -8,18 +8,13 @@ typedef struct {
 
 static PyObject *g726_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
     G726_cvObject *self;
-    //g726_state state_ptr;
-
+    // we will free self in function g726_dealloc later
     self = (G726_cvObject *)type->tp_alloc(type, 0);
-    //if(self != NULL){
-        //self->state_ptr = state_ptr;
-    //}
-
     return (PyObject *)self;
 }
 
 static int g726_init(G726_cvObject *self, PyObject *args, PyObject *kwds) {
-    //g726_init_state(&(self->state_ptr));
+    g726_init_state(&(self->state_ptr));
     return 0;
 }
 
@@ -36,6 +31,8 @@ static PyMemberDef g726_members[] = {
 static PyObject *py_pcm_to_g726_16(G726_cvObject *self, PyObject *args) {
     char* buf = NULL;
     Py_ssize_t buf_len;
+
+    // buf is managered by python, wen don't need to free
     int succeed = PyArg_ParseTuple(args, "s#", &buf, &buf_len);
 
     if(succeed){
@@ -43,7 +40,10 @@ static PyObject *py_pcm_to_g726_16(G726_cvObject *self, PyObject *args) {
         size_t size_t_MAX = -1;
         size_t unsigned_buf_len = buf_len + size_t_MAX + 1;
 
+        // 16Bits -> 2Bit = 2^3
         size_t result_len = unsigned_buf_len >> 3;
+
+        // we need to free it later
         char *buf2 = malloc(result_len);
 
         size_t index = 0;
@@ -133,11 +133,11 @@ PyMODINIT_FUNC PyInit_g726(void) {
     PyObject* m;
 
     if (PyType_Ready(&G726Type) < 0)
-        return;
+        return NULL;
     m = PyModule_Create(&samplemodule);
 
     if (m == NULL)
-        return;
+        return NULL;
 
     Py_INCREF(&G726Type);
     PyModule_AddObject(m, "g726", (PyObject *)&G726Type);
