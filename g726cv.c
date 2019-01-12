@@ -41,6 +41,107 @@ static PyMemberDef g726_members[] = {
     {NULL}
 }*/
 
+
+static PyObject *py_g726_to_pcm(G726_cvObject *self, PyObject *args) {
+    char* buf = NULL;
+    Py_ssize_t buf_len;
+
+    short *buf2;
+    char *buf3;
+    size_t i, a, result_len;
+
+    int succeed = PyArg_ParseTuple(args, "y#", &buf, &buf_len);
+    if(succeed) {
+        /* cast Py_ssize_t signed integer to unsigned */
+        size_t size_t_MAX = -1;
+        size_t unsigned_buf_len = buf_len + size_t_MAX + 1;
+
+        switch(self->g726_bits){
+            case 16:
+                result_len = unsigned_buf_len / 4 * 16;
+                buf2 = malloc(result_len);
+                for(i = 0; i < unsigned_buf_len; i+= 4){
+                    a = i / 4 * 16;
+                    buf2[a + 0] = g726_16_decoder((buf[i] & 0xc0) >> 6, self->coding, &self->state_ptr);
+                    buf2[a + 1] = g726_16_decoder((buf[i] & 0x30) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 2] = g726_16_decoder((buf[i] & 0x0c) >> 2, self->coding, &self->state_ptr);
+                    buf2[a + 3] = g726_16_decoder((buf[i] & 0x03) >> 0, self->coding, &self->state_ptr);
+
+                    buf2[a + 4] = g726_16_decoder((buf[i + 1] & 0xc0) >> 6, self->coding, &self->state_ptr);
+                    buf2[a + 5] = g726_16_decoder((buf[i + 1] & 0x30) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 6] = g726_16_decoder((buf[i + 1] & 0x0c) >> 2, self->coding, &self->state_ptr);
+                    buf2[a + 7] = g726_16_decoder((buf[i + 1] & 0x03) >> 0, self->coding, &self->state_ptr);
+
+                    buf2[a + 8] = g726_16_decoder((buf[i + 2] & 0xc0) >> 6, self->coding, &self->state_ptr);
+                    buf2[a + 9] = g726_16_decoder((buf[i + 2] & 0x30) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 10] = g726_16_decoder((buf[i + 2] & 0x0c) >> 2, self->coding, &self->state_ptr);
+                    buf2[a + 11] = g726_16_decoder((buf[i + 2] & 0x03) >> 0, self->coding, &self->state_ptr);
+
+                    buf2[a + 12] = g726_16_decoder((buf[i + 3] & 0xc0) >> 6, self->coding, &self->state_ptr);
+                    buf2[a + 13] = g726_16_decoder((buf[i + 3] & 0x30) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 14] = g726_16_decoder((buf[i + 3] & 0x0c) >> 2, self->coding, &self->state_ptr);
+                    buf2[a + 15] = g726_16_decoder((buf[i + 3] & 0x03) >> 0, self->coding, &self->state_ptr);
+                }
+                break;
+            case 24:
+                result_len = unsigned_buf_len / 4 * 10;
+                buf2 = malloc(result_len);
+                for(i = 0; i < unsigned_buf_len; i+= 4){
+                    a = i / 4 * 10;
+                    buf2[a + 0] = g726_24_decoder((buf[i] & 0x38) >> 3, self->coding, &self->state_ptr);
+                    buf2[a + 1] = g726_24_decoder((buf[i] & 0x7) >> 0, self->coding, &self->state_ptr);
+                    buf2[a + 2] = g726_24_decoder((buf[i + 1] & 0xe0) >> 5, self->coding, &self->state_ptr);
+                    buf2[a + 3] = g726_24_decoder((buf[i + 1] & 0x1c) >> 2, self->coding, &self->state_ptr);
+                    buf2[a + 4] = g726_24_decoder(((buf[i + 1] & 0x3) << 1) | ((buf[i + 2] & 0x80) >> 7), self->coding, &self->state_ptr);
+                    buf2[a + 5] = g726_24_decoder((buf[i + 2] & 0x70) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 6] = g726_24_decoder((buf[i + 2] & 0xe) >> 1, self->coding, &self->state_ptr);
+                    buf2[a + 7] = g726_24_decoder(((buf[i + 2] & 0x1) << 2) | ((buf[i + 3] & 0xc0) >> 6), self->coding, &self->state_ptr);
+                    buf2[a + 8] = g726_24_decoder((buf[i + 3] & 0x38) >> 3, self->coding, &self->state_ptr);
+                    buf2[a + 9] = g726_24_decoder((buf[i + 3] & 0x7) >> 0, self->coding, &self->state_ptr);
+                 }
+                break;
+            case 32:
+                result_len = unsigned_buf_len / 4 * 8;
+                buf2 = malloc(result_len);
+                for(i = 0; i < unsigned_buf_len; i+= 4){
+                    a = i / 4 * 8;
+                    buf2[a + 0] = g726_32_decoder((buf[i] & 0xf0) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 1] = g726_32_decoder((buf[i] & 0xf) >> 0, self->coding, &self->state_ptr);
+                    buf2[a + 2] = g726_32_decoder((buf[i + 1] & 0xf0) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 3] = g726_32_decoder((buf[i + 1] & 0xf) >> 0, self->coding, &self->state_ptr);
+
+                    buf2[a + 4] = g726_32_decoder((buf[i + 2] & 0xf0) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 5] = g726_32_decoder((buf[i + 2] & 0xf) >> 0, self->coding, &self->state_ptr);
+                    buf2[a + 6] = g726_32_decoder((buf[i + 3] & 0xf0) >> 4, self->coding, &self->state_ptr);
+                    buf2[a + 7] = g726_32_decoder((buf[i + 3] & 0xf) >> 0, self->coding, &self->state_ptr);
+                }
+                break;
+            case 40:
+                result_len = unsigned_buf_len / 4 * 6;
+                buf2 = malloc(result_len);
+                for(i = 0; i < unsigned_buf_len; i+= 4){
+                    a = i / 4 * 6;
+                    buf2[a + 0] = g726_40_decoder((buf[i] & 0x3e) >> 1, self->coding, &self->state_ptr);
+                    buf2[a + 1] = g726_40_decoder(((buf[i] & 0x1) << 4) | ((buf[i + 1] & 0xf0) >> 4), self->coding, &self->state_ptr);
+                    buf2[a + 2] = g726_40_decoder(((buf[i + 1] & 0xf) << 1) | ((buf[i + 2] & 0x80) >> 7), self->coding, &self->state_ptr);
+                    buf2[a + 3] = g726_40_decoder((buf[i + 2] & 0x40) >> 2, self->coding, &self->state_ptr);
+
+                    buf2[a + 4] = g726_40_decoder(((buf[i + 2] & 0x3) << 3) | ((buf[i + 3] & 0xe0) >> 5), self->coding, &self->state_ptr);
+                    buf2[a + 5] = g726_40_decoder((buf[i + 2] & 0x1f) >> 0, self->coding, &self->state_ptr);
+                }
+                break;
+            default:
+                return NULL;
+
+            buf3 = (char *)buf2;
+            PyObject *myResult = Py_BuildValue("y#", buf3, result_len * 2);
+            free(buf2);
+            return myResult;
+        }
+    }
+    return NULL;
+}
+
 /* py_pcm_to_g726() */
 static PyObject *py_pcm_to_g726(G726_cvObject *self, PyObject *args) {
     char* buf = NULL;
@@ -207,7 +308,8 @@ b4 b4 b4 b5 b5 b5 b5 b5
 }
 
 static PyMethodDef g726_methods[] = {
-    {"pcm_to_g726", (PyCFunction)py_pcm_to_g726, METH_VARARGS, "Convert pcm  to g276" },
+    {"pcm_to_g726", (PyCFunction)py_pcm_to_g726, METH_VARARGS, "Convert pcm to g276" },
+    {"g726_to_pcm", (PyCFunction)py_g726_to_pcm, METH_VARARGS, "Convert g276 to pcm" },
     {NULL}  /* Sentinel */
 };
 
