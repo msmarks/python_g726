@@ -60,7 +60,7 @@ static PyObject *py_g726_to_pcm(G726_cvObject *self, PyObject *args) {
             case 16:
                 result_len = unsigned_buf_len / 4 * 16;
                 buf2 = malloc(result_len);
-                for(i = 0; i < unsigned_buf_len; i+= 4){
+                for(i = 0; i <= unsigned_buf_len - 4; i+= 4){
                     a = i / 4 * 16;
                     buf2[a + 0] = g726_16_decoder((buf[i] & 0xc0) >> 6, self->coding, &self->state_ptr);
                     buf2[a + 1] = g726_16_decoder((buf[i] & 0x30) >> 4, self->coding, &self->state_ptr);
@@ -86,7 +86,7 @@ static PyObject *py_g726_to_pcm(G726_cvObject *self, PyObject *args) {
             case 24:
                 result_len = unsigned_buf_len / 4 * 10;
                 buf2 = malloc(result_len);
-                for(i = 0; i < unsigned_buf_len; i+= 4){
+                for(i = 0; i <= unsigned_buf_len - 4; i+= 4){
                     a = i / 4 * 10;
                     buf2[a + 0] = g726_24_decoder((buf[i] & 0x38) >> 3, self->coding, &self->state_ptr);
                     buf2[a + 1] = g726_24_decoder((buf[i] & 0x7) >> 0, self->coding, &self->state_ptr);
@@ -103,7 +103,7 @@ static PyObject *py_g726_to_pcm(G726_cvObject *self, PyObject *args) {
             case 32:
                 result_len = unsigned_buf_len / 4 * 8;
                 buf2 = malloc(result_len);
-                for(i = 0; i < unsigned_buf_len; i+= 4){
+                for(i = 0; i <= unsigned_buf_len - 4; i+= 4){
                     a = i / 4 * 8;
                     buf2[a + 0] = g726_32_decoder((buf[i] & 0xf0) >> 4, self->coding, &self->state_ptr);
                     buf2[a + 1] = g726_32_decoder((buf[i] & 0xf) >> 0, self->coding, &self->state_ptr);
@@ -119,7 +119,7 @@ static PyObject *py_g726_to_pcm(G726_cvObject *self, PyObject *args) {
             case 40:
                 result_len = unsigned_buf_len / 4 * 6;
                 buf2 = malloc(result_len);
-                for(i = 0; i < unsigned_buf_len; i+= 4){
+                for(i = 0; i <= unsigned_buf_len - 4; i+= 4){
                     a = i / 4 * 6;
                     buf2[a + 0] = g726_40_decoder((buf[i] & 0x3e) >> 1, self->coding, &self->state_ptr);
                     buf2[a + 1] = g726_40_decoder(((buf[i] & 0x1) << 4) | ((buf[i + 1] & 0xf0) >> 4), self->coding, &self->state_ptr);
@@ -189,11 +189,11 @@ b4 b4 b4 b5 b5 b5 b5 b5
 
         switch(self->g726_bits){
             case 16:
-                result_len = unsigned_buf_len >> 3;
+                result_len = unsigned_buf_len / 8;
                 buf2 = malloc(result_len); // 2 ^ 3 = 8   16bits -> 2bits  32 char(16 short) -> 4char
-                for(i = 0; i < unsigned_buf_len; i += 32){
+                for(i = 0; i <= unsigned_buf_len - 32; i += 32){
                     buf_short = (short*)(buf + i); // 16 bits
-                    a = i >> 3;
+                    a = i / 8;
                     buf2[a] =
                         (g726_16_encoder(buf_short[0], self->coding, &self->state_ptr) << 6) |
                         (g726_16_encoder(buf_short[1], self->coding, &self->state_ptr) << 4) |
@@ -219,7 +219,7 @@ b4 b4 b4 b5 b5 b5 b5 b5
             case 24:
                 result_len = unsigned_buf_len / 20 * 4;
                 buf2 = malloc(result_len);  // 16bits -> 3bits  20 char(10 short) -> 4char
-                for(i = 0; i < unsigned_buf_len; i += 20){
+                for(i = 0; i <= unsigned_buf_len - 20; i += 20){
                     buf_short = (short*)(buf + i); // 16 bits
                     a = i / 20 * 4;
                     buf2[a] =
@@ -249,7 +249,7 @@ b4 b4 b4 b5 b5 b5 b5 b5
             case 32:
                 result_len = unsigned_buf_len / 16 * 4;
                 buf2 = malloc(result_len);  // 16bits -> 4bits  16 char(8 short) -> 4char
-                for(i = 0; i < unsigned_buf_len; i += 16){
+                for(i = 0; i <= unsigned_buf_len - 16; i += 16){
                     buf_short = (short*)(buf + i);
                     a = i >> 2;
                     buf2[a] =
@@ -269,7 +269,7 @@ b4 b4 b4 b5 b5 b5 b5 b5
             case 40:
                 result_len = unsigned_buf_len / 12 * 4;
                 buf2 = malloc(result_len); // 16bits -> 5bits  12 char(4 short) -> 4char
-                for(i = 0; i < unsigned_buf_len; i += 12){
+                for(i = 0; i <= unsigned_buf_len - 12; i += 12){
                     buf_short = (short*)(buf + i);
                     a = i / 12 * 4;
 
